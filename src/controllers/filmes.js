@@ -1,14 +1,14 @@
 
 
 const [schema, Filmes] = require('../models/filmesSchema');
-const utils = require('../Utils/inputBody')
+const utils = require('../Utils/utils')
 
 const getAll = async (req, res) => {
     try {
         let lista = await Filmes.find(req.query);
         return res.status(200).send(lista)
     } catch (error) {
-        return res.status(404).send(error)
+        return res.status(500).send({ mensagem : error.message})
     }
 }
 
@@ -16,10 +16,11 @@ const getById = async (req, res) => {
         
         try {
             const filme = await Filmes.findById(req.params.id)
-            return utils.resClient(filme, res)
+            const [code,  mensagem] = utils.filterResponse(filme)
+            res.status(code).json(mensagem)
         } catch (error) {
-            return res.status(400).send({
-                mensagem : 'filme não encontrado!',
+            return res.status(500).send({
+                mensagem : error.message,
             })
         }
 }
@@ -36,7 +37,7 @@ const createLivro = async (req, res) => {
 
     catch (err) {
         return res.status(500).send({
-            mensagem : err
+            mensagem : err.message
         })
     }
     
@@ -47,10 +48,11 @@ const deleteById = async (req, res) => {
     const { id } = req.params;
     try {
         const deletado = await Filmes.deleteOne({ _id : id })
-        return utils.resClient(deletado, res);
+        const [code,  mensagem] = utils.filterResponse(deletado)
+        res.status(code).json(mensagem)
     }
     catch (err) {
-        return res.status(400).send({ mensagem : 'Descupa, ocorreu um erro, por favor verificar o id'})
+        return res.status(500).send({ mensagem : err.message})
     }
 }
 
@@ -59,10 +61,11 @@ const deleteByTitle = async (req, res) => {
     const { Title } = req.query;
     try {
         const deletado = await Filmes.deleteOne({Title : Title})
-        return utils.resClient(deletado, res)
+        const [code,  mensagem] = utils.filterResponse(deletado)
+        res.status(code).json(mensagem)
     }
     catch (err) {
-        return res.status(400).send({ mensagem : 'Descupa, ocorreu um erro, por favor verificar o Title', err : err.message })
+        return res.status(500).send({ mensagem : err.message })
     }
 }
 
@@ -72,10 +75,11 @@ const updateById = async (req, res) => {
     const { bodyData } = req;
     try {
         const update = await Filmes.updateOne({_id : id}, bodyData);
-        return utils.resClient(update, res)
+        const [code,  mensagem] = utils.filterResponse(update)
+        res.status(code).json(mensagem)
     } catch (error) {
-        return res.status(400).send({
-            mensagem : "filme não encontrado"
+        return res.status(500).json({
+            mensagem : error.message
         })
     }
 }

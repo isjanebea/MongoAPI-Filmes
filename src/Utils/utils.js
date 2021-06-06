@@ -11,8 +11,8 @@ const fakeJson = {
 
 
 
-const checkSchema = (reference, { body : json , method}) => {
-    const required = method=="POST";
+const checkSchema = (reference, { body: json, method }) => {
+    const required = method == "POST";
     const add = (key, atr) => {
         if (json[key]) {
             modelJson[key] = atr
@@ -50,7 +50,7 @@ const checkSchema = (reference, { body : json , method}) => {
             }
             add(key, jsn)
         }
-       else if (typeof type == 'number') {
+        else if (typeof type == 'number') {
             if (required && isNaN(jsn)) {
                 setNotMirror(key)
             }
@@ -61,7 +61,7 @@ const checkSchema = (reference, { body : json , method}) => {
                 setNotMirror(key)
             }
         }
-        
+
     })
 
     if (notMirror !== undefined && required) {
@@ -80,18 +80,39 @@ const checkSchema = (reference, { body : json , method}) => {
 }
 
 
-const  resClient = (response, res) => {
-    const { deletedCount, n } = response;
-    if (!response || deletedCount==0 || n==0) {
-        return res.status(500).send({
-            mensagem:  "Não conseguimos localizar o filme."
+const resClient = (response, res) => {
+    const deletedCount = response.deletedCount || undefined;
+    const nModified = response.nModified || undefined;
+
+    console.log(nModifield)
+    if (nModified == 0) {
+        return res.stauts(304).send({
+            mensagem: "Nenhum dado foi alterado!"
         })
     }
-    
+    else if (!response || deletedCount == 0) {
+        return res.status(400).send({
+            mensagem: "Não conseguimos localizar o filme."
+        })
+    }
+
     else {
-        return res.status(200).send({ mensagem : response })
+        return res.status(200).send({ mensagem: response })
     }
 }
 
+const filterResponse = (response) => {
 
-module.exports = { checkSchema, resClient }
+    if (response.nModified == 0) {
+        return [304, { mensagem : "Nenhum dado foi alterado!" }]
+    }
+    else if (!response || response.deletedCount == 0) {
+        return [400,  {mensagem : "Não conseguimos localizar o filme."}]
+    }
+
+    else {
+        return [200, response]
+    }
+}
+
+module.exports = { checkSchema, resClient, filterResponse}
